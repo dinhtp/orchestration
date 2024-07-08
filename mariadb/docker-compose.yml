@@ -1,0 +1,41 @@
+services:
+  mariadb:
+    image: mariadb:11.5
+    restart: always
+    cap_add:
+      - ALL
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      - MARIADB_USER=bn_moodle
+      - MARIADB_DATABASE=bitnami_moodle
+      - MARIADB_CHARACTER_SET=utf8mb4
+      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    ports:
+      - '3306:3306'
+    hostname: db-mariadb
+    container_name: db-mariadb
+    networks:
+      - db
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=wordpress-mysql
+      - PMA_PORT=3306
+      - PMA_USER=wordpress
+      - PMA_PASSWORD=wordpress123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '8080:80'
+    hostname: db-phpmyadmin
+    container_name: db-phpmyadmin
+    depends_on:
+      - mysql
+    networks:
+      - db
+
+networks:
+  db:
+    driver: bridge
