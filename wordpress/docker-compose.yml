@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.4.1
+    restart: always
+    cap_add:
+      - ALL
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/dumps:/tmp/dumps
+    environment:
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wordpress
+      - MYSQL_PASSWORD=wordpress123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '3306:3306'
+    hostname: wordpress-mysql
+    container_name: wordpress-mysql
+    networks:
+      - wordpress
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=wordpress-mysql
+      - PMA_PORT=3306
+      - PMA_USER=wordpress
+      - PMA_PASSWORD=wordpress123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '8080:80'
+    hostname: wordpress-phpmyadmin
+    container_name: wordpress-phpmyadmin
+    depends_on:
+      - mysql
+    networks:
+      - wordpress
+
+  wordpress:
+    image: wordpress:6.5.5-php8.1-apache
+    restart: unless-stopped
+    volumes:
+      - ./wordpress:/var/www/html
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-mysql:3306
+      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_DB_USER=wordpress
+      - WORDPRESS_DB_PASSWORD=wordpress123!@#
+      - WORDPRESS_TABLE_PREFIX=wp_
+      - WORDPRESS_DEBUG=yes
+    ports:
+      - '80:80'
+    hostname: wordpress
+    container_name: wordpress
+    depends_on:
+      - mysql
+    networks:
+      - wordpress
+
+networks:
+  wordpress:
+    driver: bridge
