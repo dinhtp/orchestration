@@ -5,9 +5,7 @@ services:
     cap_add:
       - ALL
     volumes:
-      - ./mysql/data:/var/lib/mysql
-      - ./mysql/conf:/etc/mysql/conf.d
-      - ./mysql/dumps:/tmp/dumps
+      - ./mysql:/var/lib/mysql
     environment:
       - MYSQL_DATABASE=wordpress
       - MYSQL_USER=wordpress
