@@ -1,0 +1,41 @@
+services:
+  mysql:
+    image: mysql:8.4.1
+    restart: always
+    cap_add:
+      - ALL
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=admin123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '3306:3306'
+    hostname: db-mysql
+    container_name: db-mysql
+    networks:
+      - db
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=db-mysql
+      - PMA_PORT=3306
+      - PMA_USER=admin
+      - PMA_PASSWORD=admin123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '8080:80'
+    hostname: db-phpmyadmin
+    container_name: db-phpmyadmin
+    depends_on:
+      - mysql
+    networks:
+      - db
+
+networks:
+  db:
+    driver: bridge
