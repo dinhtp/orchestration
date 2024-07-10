@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+if [ $# -eq 0 ]
+then
+  composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:"$1" . ;
+else
+  composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition . ;
+fi
+chmod u+w -R ./var ./vendor ./pub/static ./pub/media ./app/etc
+chmod u+x ./bin/magento
+
+echo "
+===================== Creation Complete ===================
+
+    Composer Magento 2 Created successfully!
+    Merchant, commence your online business!
+
+==========================================================="

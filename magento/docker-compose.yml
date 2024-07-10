@@ -1,0 +1,66 @@
+services:
+  mysql:
+    image: mysql:8.4.1
+    restart: always
+    cap_add:
+      - ALL
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=magento
+      - MYSQL_USER=magento
+      - MYSQL_PASSWORD=magento123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '3306:3306'
+    hostname: magento-mysql
+    container_name: magento-mysql
+    networks:
+      - magento
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=magento-mysql
+      - PMA_PORT=3306
+      - PMA_USER=magento
+      - PMA_PASSWORD=magento123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '8080:80'
+    hostname: magento-phpmyadmin
+    container_name: magento-phpmyadmin
+    depends_on:
+      - mysql
+    networks:
+      - magento
+
+  magento:
+    image: magento:6.5.5-php8.1-apache
+    restart: unless-stopped
+    volumes:
+      - ./magento:/var/www/html
+    environment:
+      - magento_DB_HOST=magento-mysql:3306
+      - magento_DB_NAME=magento
+      - magento_DB_USER=magento
+      - magento_DB_PASSWORD=magento123!@#
+      - magento_TABLE_PREFIX=wp_
+      - magento_DEBUG=yes
+    ports:
+      - '80:80'
+    hostname: magento
+    container_name: magento
+    depends_on:
+      - mysql
+    networks:
+      - magento
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  magento:
+    driver: bridge

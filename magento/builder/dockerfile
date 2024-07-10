@@ -1,0 +1,98 @@
+FROM php:8.3-apache
+
+# Magento 2 system requirements
+# https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/system-requirements
+
+# Install System Dependencies
+RUN apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+	software-properties-common
+RUN apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y \
+	libfreetype-dev \
+	libicu-dev \
+	libssl-dev \
+	libjpeg62-turbo-dev \
+	libmcrypt-dev \
+	libedit-dev \
+	libedit2 \
+	libxslt1-dev \
+	apt-utils \
+	gnupg \
+	redis-tools \
+	default-mysql-client \
+	git \
+	nano \
+	wget \
+	curl \
+	libcurl4-openssl-dev \
+	lynx \
+	psmisc \
+	unzip \
+	libzip-dev \
+	zip \
+	tar \
+	cron \
+	bash-completion
+RUN apt-get clean
+
+# Configure PHP extension
+RUN docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/
+
+# Install Magento PHP extensions
+# https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/prerequisites/php-settings#verify-installed-extensions
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install iconv
+RUN docker-php-ext-install intl
+RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install soap
+RUN docker-php-ext-install sockets
+RUN docker-php-ext-install zip
+
+# Install oAuth
+RUN apt-get update \
+	&& apt-get install -y \
+	libpcre3 \
+	libpcre3-dev \
+	&& pecl install oauth \
+	&& echo "extension=oauth.so" > /usr/local/etc/php/conf.d/docker-php-ext-oauth.ini
+
+# Install Node, NVM, NPM and Grunt
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
+	&& curl https://raw.githubusercontent.com/creationix/nvm/v0.16.1/install.sh | sh \
+	&& apt-get update && apt-get upgrade -y \
+	&& apt-get install nodejs npm -y build-essential \
+	&& npm i -g grunt-cli yarn
+
+# Install Composer
+RUN	curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --version=2.7.7 --filename=composer
+
+# Install Mailhog
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go \
+	&& mkdir /opt/go \
+	&& export GOPATH=/opt/go \
+	&& go get github.com/mailhog/mhsendmail
+
+# Configuring system
+ADD config/php.ini /usr/local/etc/php/php.ini
+COPY docker/bin/* /usr/local/bin/
+RUN chmod +x /usr/local/bin/*
+
+# Link Bash Completion
+COPY config/.bashrc /usr/local/.bashrc
+RUN echo "source /usr/local/.bashrc" >> /root/.bashrc
+RUN echo "source /usr/local/.bashrc" >> /var/www/.bashrc
+RUN echo "source /usr/local/.bashrc" >> ~/.bashrc
+
+RUN chmod 777 -Rf /var/www /var/www/.* \
+	&& chown -Rf www-data:www-data /var/www /var/www/.* \
+	&& usermod -u 1000 www-data \
+	&& chsh -s /bin/bash www-data\
+	&& a2enmod rewrite \
+	&& a2enmod headers
+
+VOLUME /var/www/html
+WORKDIR /var/www/html
+
+CMD apachectl -D FOREGROUND

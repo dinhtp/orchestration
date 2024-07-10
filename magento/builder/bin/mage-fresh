@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+rm -rf var/di/ var/generation/ var/cache/ var/page_cache/ var/view_preprocessed/ var/composer_home/cache/
+rm -rf var/generation
+rm -rf generated/*
+
+php -d memory_limit=-1 bin/magento setup:upgrade
+php -d memory_limit=-1 bin/magento setup:di:compile
+php -d memory_limit=-1 bin/magento index:reindex
+php -d memory_limit=-1 bin/magento setup:static-content:deploy -f
+php -d memory_limit=-1 bin/magento cache:flush
+
+rm -rf var/log/*
+chmod -R 777 var/ pub/ generated/
+
+echo DONE
