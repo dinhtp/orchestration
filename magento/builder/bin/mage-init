@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
-if [ $# -eq 0 ]
+
+version="latest"
+cmd="composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition"
+
+if [ $# -eq 1 ]
 then
-  composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition:"$1" . ;
-else
-  composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition . ;
+  version="$1"
+  cmd+=":$1"
 fi
+
+cmd+=" ."
+
+echo "Init Magento 2 Version: $version"
+echo "$cmd"
+eval "$cmd"
+
 chmod u+w -R ./var ./vendor ./pub/static ./pub/media ./app/etc
 chmod u+x ./bin/magento
 
