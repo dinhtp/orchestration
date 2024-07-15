@@ -2,6 +2,7 @@
 
 # Get User Input and validate
 # shellcheck disable=SC2162
+# https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/advanced
 read -p "Magento 2 Base Url:" baseUrl
 until [[ ! -z $baseUrl ]]; do read -p "Magento 2 Base Url:" baseUrl; done
 
