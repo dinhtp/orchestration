@@ -43,9 +43,7 @@ services:
     environment:
       - node.name=magento-elastic-search
       - discovery.type=single-node
-      - cluster.name=magento-elastic-cluster
       - discovery.seed_hosts=magento-elastic-search
-      - cluster.initial_master_nodes=magento-elastic-search
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -80,9 +78,10 @@ services:
       - DB_USER=magento
       - DB_PASSWORD=magento123!@#
       - DB_PREFIX=
-      - DB_SSL_KEY=
-      - DB_SSL_CERT=
-      - DB_SSL_CA=
+      - ES_HOST=
+      - ES_PORT=
+      - ES_USERNAME=
+      - ES_PASSWORD=
 
       - MAGENTO_URL=http://localhost/
       - MAGENTO_SECURE_URL=http://localhost/
@@ -100,6 +99,7 @@ services:
     container_name: magento
     depends_on:
       - mysql
+      - elastic-search
     networks:
       - magento
 

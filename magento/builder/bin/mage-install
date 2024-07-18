@@ -1,115 +1,41 @@
 #!/usr/bin/env bash
 
-# Get User Input and validate
-# shellcheck disable=SC2162
+# Prepare Magento installation command
 # https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/advanced
-read -p "Magento 2 Base Url:" baseUrl
-until [[ ! -z $baseUrl ]]; do read -p "Magento 2 Base Url:" baseUrl; done
-
-read -p "Database Host:" dbHost
-until [[ ! -z $dbHost ]]; do read -p "Database Host:" dbHost; done
-
-read -p "Database Name:" dbName
-until [[ ! -z $dbName ]]; do read -p "Database Name:" dbName; done
-
-read -p "Database User:" dbUser;
-until [[ ! -z $dbUser ]]; do read -p "Database User:" dbUser; done
-
-read -p "Database Password:" dbPassword;
-until [[ ! -z $dbPassword ]]; do read -p "Database Password:" dbPassword; done
-
-read -p "Admin First Name (Magento):" adminFirstName
-adminFirstName=${adminFirstName:-Magento}
-
-read -p "Admin Last Name (Commerce):" adminLastName
-adminLastName=${adminLastName:-Commerce}
-
-read -p "Admin Email (magento@commerce.com):" adminEmail
-adminEmail=${adminEmail:-magento@commerce.com}
-
-read -p "Admin User (admin):" adminUser
-adminUser=${adminUser:-admin}
-
-read -p "Admin Password (admin123):" adminPassword
-adminPassword=${adminPassword:-admin123}
-
-read -p "Language (en_US):" language
-language=${language:-en_US}
-
-read -p "Currency (USD):" currency
-currency=${currency:-USD}
-
-read -p "Timezone (UTC) [values: https://www.php.net/manual/en/timezones.php]:" timezone
-timezone=${timezone:-UTC}
-
-read -p "Use-rewrites (1) [values: '0', '1'] :" userRewrite
-userRewrite=${userRewrite:-1}
-
-read -p "Backend Frontname (admin):" backend
-backend=${backend:-admin}
-
-read -p "Deploy Mode (developer) [values: 'developer', 'production', 'default']:" mode
-mode=${mode:-developer}
-
-read -p "Use Sample Data (y) [y/n]:" useSample
-useSample=${useSample:-y}
-
-read -p "Use Elastic Search (n) [y/n]:" useEts
-useEts=${useEts:-n}
-
-if [[ $useEts = "y" ]]
-then
-	read -p "Elastic Search Engine (elasticsearch7) [values: 'elasticsearch5', 'elasticsearch6', 'elasticsearch7']:" etsEngine
-	etsEngine=${etsEngine:-elasticsearch7}
-
-	read -p "Elastic Search Host (elasticsearch):" etsHost
-	etsHost=${etsHost:-elasticsearch}
-
-	read -p "Elastic Search Port (9200):" etsPort
-	etsPort=${etsPort:-9200}
-
-	read -p "Elastic Search Enable Auth (0) [values: '0', '1']:" etsAuth
-	etsAuth=${etsAuth:-0}
-
-	if [[ $etsAuth -eq 1 ]]
-	then
-		read -p "Elastic Search Username:" etsUsr
-		until [[ ! -z $etsUsr ]]; do read -p "Elastic Search Username:" etsUsr; done
-		read -p "Elastic Search Password:" etsPwd
-		until [[ ! -z $etsPwd ]]; do read -p "Elastic Search Password:" etsPwd; done
-	fi
-fi
-
 cmd="php -f ./bin/magento setup:install
-	--base-url=$baseUrl
-    --db-host=$dbHost
-    --db-name=$dbName
-    --db-user=$dbUser
-    --db-password=$dbPassword
-    --backend-frontname=$backend
-    --admin-firstname=$adminFirstName
-    --admin-lastname=$adminLastName
-    --admin-email=$adminEmail
-    --admin-user=$adminUser
-    --admin-password=$adminPassword
-    --language=$language
-    --currency=$currency
-    --timezone=$timezone
-    --use-rewrites=$userRewrite "
+	--base-url=$MAGENTO_URL
+    --db-host=$DB_HOST
+    --db-name=$DB_NAME
+    --db-user=$DB_USER
+    --db-password=$DB_PASSWORD
+    --backend-frontname=$ADMIN_URL
+    --admin-firstname=$ADMIN_FIRST_NAME
+    --admin-lastname=$ADMIN_LAST_NAME
+    --admin-email=$ADMIN_EMAIL
+    --admin-user=$ADMIN_USERNAME
+    --admin-password=$ADMIN_PASSWORD
+    --language=$MAGENTO_LANGUAGE
+    --currency=$MAGENTO_CURRENCY
+    --timezone=$MAGENTO_TIMEZONE
+    --use-rewrites=$MAGENTO_USE_REWRITES
+    --use-secure-admin=$ADMIN_USE_SECURE
+    --admin-use-security-key=$ADMIN_SECURITY_KEY "
 
-if [[ $useSample = "y" ]]; then cmd+="--use-sample-data "; fi
+if [ "$MAGENTO_SAMPLE_DATA" = "1" ]; then cmd+="--use-sample-data "; fi
 
-if [[ $useEts = "y" ]]
+if [[ ! -z "$DB_PREFIX" ]]; then cmd+="--db-prefix=$DB_PREFIX "; fi
+
+if [[ ! -z "$ES_HOST" ]]
 then
-	cmd+="--search-engine=$etsEngine "
-	cmd+="--elasticsearch-host=$etsHost "
-	cmd+="--elasticsearch-port=$etsPort "
+	cmd+="--search-engine=Elasticsearch "
+	cmd+="--elasticsearch-host=$ES_HOST "
+	cmd+="--elasticsearch-port=$ES_PORT "
 fi
 
 if [[ $etsAuth -eq 1 ]]
 then
-	cmd+="--elasticsearch-username=$etsUsr "
-	cmd+="--elasticsearch-password=$etsPwd "
+	cmd+="--elasticsearch-username=$ES_USERNAME "
+	cmd+="--elasticsearch-password=$ES_PASSWORD "
 fi
 
 # Execute Setup Install Script
@@ -120,7 +46,7 @@ echo "$cmd"
 eval "$cmd"
 
 # Execute Dependency Command
-if [[ $useSample = "y" ]];
+if [[ $MAGENTO_SAMPLE_DATA = "1" ]];
 then
 php -f ./bin/magento sampledata:deploy
 fi
@@ -130,10 +56,10 @@ php -f ./bin/magento setup:di:compile
 php -f ./bin/magento setup:static-content:deploy -f
 php -f ./bin/magento indexer:set-mode schedule
 php -f ./bin/magento indexer:reindex
-php -f ./bin/magento deploy:mode:set "$mode"
+php -f ./bin/magento deploy:mode:set "$MAGENTO_MODE"
 php -f ./bin/magento cache:flush
 
-# Install npm, grun and cron
+# Install npm, grunt and cron
 mv package.json.sample package.json
 mv Gruntfile.js.sample Gruntfile.js
 npm i
@@ -146,10 +72,10 @@ echo "
 
 		Magento 2 Installed successfully!
 
-		Admin: $baseUrl/$backend
-		User: $adminUser
-		Password: $adminPassword
-		Mode: $mode
+		Admin URL: $MAGENTO_URL/$ADMIN_URL
+		User: $ADMIN_USERNAME
+		Password: $ADMIN_PASSWORD
+	  Deployment Mode: $MAGENTO_MODE
 
 		Build something amazing!
 
