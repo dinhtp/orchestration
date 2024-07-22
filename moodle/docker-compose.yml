@@ -1,0 +1,62 @@
+services:
+  mysql:
+    image: mysql:8.0.0
+    restart: always
+    cap_add:
+      - ALL
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=moodle
+      - MYSQL_USER=moodle
+      - MYSQL_PASSWORD=moodle123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '3306:3306'
+    hostname: moodle-mysql
+    container_name: moodle-mysql
+    networks:
+      - moodle
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=moodle-mysql
+      - PMA_PORT=3306
+      - PMA_USER=moodle
+      - PMA_PASSWORD=moodle123!@#
+      - MYSQL_ROOT_PASSWORD=root123!@#
+    ports:
+      - '8080:80'
+    hostname: moodle-phpmyadmin
+    container_name: moodle-phpmyadmin
+    depends_on:
+      - mysql
+    networks:
+      - moodle
+
+  moodle:
+    image: php8.1-apache
+    restart: unless-stopped
+    volumes:
+      - ./moodle:/var/www/html
+    environment:
+      - moodle_DB_HOST=moodle-mysql:3306
+      - moodle_DB_NAME=moodle
+      - moodle_DB_USER=moodle
+      - moodle_DB_PASSWORD=moodle123!@#
+      - moodle_TABLE_PREFIX=wp_
+      - moodle_DEBUG=yes
+    ports:
+      - '80:80'
+    hostname: moodle
+    container_name: moodle
+    depends_on:
+      - mysql
+    networks:
+      - moodle
+
+networks:
+  moodle:
+    driver: bridge
