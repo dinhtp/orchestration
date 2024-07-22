@@ -70,12 +70,6 @@ RUN apt-get update  \
 # Install Composer
 RUN	curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --version=2.7.7 --filename=composer
 
-# Install Mailhog
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install golang-go \
-	&& mkdir /opt/go \
-	&& export GOPATH=/opt/go
-RUN go install github.com/mailhog/MailHog@latest
-
 # Configuring system
 ADD config/php.ini /usr/local/etc/php/php.ini
 COPY bin/* /usr/local/bin/

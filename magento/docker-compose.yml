@@ -5,7 +5,7 @@ services:
     cap_add:
       - ALL
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./mysql:/var/lib/mysql
     environment:
       - MYSQL_DATABASE=magento
       - MYSQL_USER=magento
@@ -39,7 +39,7 @@ services:
   elastic-search:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     volumes:
-      - search_data:/usr/share/elasticsearch/data
+      - ./elastic-search:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -57,10 +57,10 @@ services:
       - magento
 
   magento:
-    image: magento:v5
+    image: magento:v1
     restart: unless-stopped
     volumes:
-      - magento:/var/www/html
+      - ./magento:/var/www/html
     environment:
       - ADMIN_URL=admin
       - ADMIN_USERNAME=admin
@@ -102,14 +102,6 @@ services:
       - elastic-search
     networks:
       - magento
-
-volumes:
-  mysql_data:
-    driver: local
-  magento:
-    driver: local
-  search_data:
-    driver: local
 
 networks:
   magento:
