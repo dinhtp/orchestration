@@ -1,42 +1,65 @@
 #!/usr/bin/env bash
 
+# Sample ENV variable
+#ADMIN_URL="admin"
+#ADMIN_USERNAME="admin"
+#ADMIN_PASSWORD="admin123"
+#ADMIN_FIRST_NAME="Magento"
+#ADMIN_LAST_NAME="Commerce"
+#ADMIN_EMAIL="magento@commerce.com"
+#ADMIN_USE_SECURE=0
+#ADMIN_SECURITY_KEY=0
+
+#DB_HOST="magento-mysql:3306"
+#DB_NAME="magento"
+#DB_USER="magento"
+#DB_PASSWORD="magento123!@#"
+#DB_PREFIX=
+
+#SEARCH_ENGINE="elasticsearch8"
+#ES_HOST="magento-elastic-search"
+#ES_PORT=9200
+#ES_USERNAME=
+#ES_PASSWORD=
+
+#MAGENTO_URL="http://localhost/"
+#MAGENTO_SECURE_URL="http://localhost/"
+#MAGENTO_LANGUAGE="en_US"
+#MAGENTO_CURRENCY="USD"
+#MAGENTO_TIMEZONE="UTC"
+#MAGENTO_USE_REWRITES=0
+#MAGENTO_USE_SECURE=0
+#MAGENTO_MODE="developer"
+#MAGENTO_SESSION_SAVE="db"
+#MAGENTO_SAMPLE_DATA=1
+
 # Prepare Magento installation command
 # https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/advanced
-cmd="php -f ./bin/magento setup:install
-	--base-url=$MAGENTO_URL
-    --db-host=$DB_HOST
-    --db-name=$DB_NAME
-    --db-user=$DB_USER
-    --db-password=$DB_PASSWORD
-    --backend-frontname=$ADMIN_URL
-    --admin-firstname=$ADMIN_FIRST_NAME
-    --admin-lastname=$ADMIN_LAST_NAME
-    --admin-email=$ADMIN_EMAIL
-    --admin-user=$ADMIN_USERNAME
-    --admin-password=$ADMIN_PASSWORD
-    --language=$MAGENTO_LANGUAGE
-    --currency=$MAGENTO_CURRENCY
-    --timezone=$MAGENTO_TIMEZONE
-    --use-rewrites=$MAGENTO_USE_REWRITES
-    --use-secure-admin=$ADMIN_USE_SECURE
-    --admin-use-security-key=$ADMIN_SECURITY_KEY "
+cmd="php -f ./bin/magento setup:install --base-url='$MAGENTO_URL' --backend-frontname='$ADMIN_URL'"
+cmd+=" --db-host='$DB_HOST' --db-name='$DB_NAME' --db-user='$DB_USER' --db-password='$DB_PASSWORD'"
+cmd+=" --admin-firstname='$ADMIN_FIRST_NAME' --admin-lastname='$ADMIN_LAST_NAME' --admin-email='$ADMIN_EMAIL'"
+cmd+=" --admin-user='$ADMIN_USERNAME' --admin-password='$ADMIN_PASSWORD'"
+cmd+=" --use-secure-admin='$ADMIN_USE_SECURE' --admin-use-security-key='$ADMIN_SECURITY_KEY'"
+cmd+=" --language='$MAGENTO_LANGUAGE' --currency='$MAGENTO_CURRENCY' --timezone='$MAGENTO_TIMEZONE'"
+cmd+=" --use-rewrites=$MAGENTO_USE_REWRITES --use-secure=$MAGENTO_USE_SECURE"
 
-if [ "$MAGENTO_SAMPLE_DATA" = "1" ]; then cmd+="--use-sample-data "; fi
+if [ "$MAGENTO_SAMPLE_DATA" = "1" ]; then cmd+=" --use-sample-data"; fi
 
-if [[ ! -z "$DB_PREFIX" ]]; then cmd+="--db-prefix=$DB_PREFIX "; fi
+if [ "$MAGENTO_USE_SECURE" = "1" ]; then cmd+=" --base-url-secure='$MAGENTO_SECURE_URL'"; fi
 
-if [[ ! -z "$ES_HOST" ]]
-then
-	cmd+="--search-engine=Elasticsearch "
-	cmd+="--elasticsearch-host=$ES_HOST "
-	cmd+="--elasticsearch-port=$ES_PORT "
-fi
+if [[ ! -z "$DB_PREFIX" ]]; then cmd+=" --base-url-secure='$DB_PREFIX'"; fi
 
-if [[ $etsAuth -eq 1 ]]
-then
-	cmd+="--elasticsearch-username=$ES_USERNAME "
-	cmd+="--elasticsearch-password=$ES_PASSWORD "
-fi
+if [[ ! -z "$MAGENTO_SESSION_SAVE" ]]; then cmd+=" --session-save=$MAGENTO_SESSION_SAVE"; fi
+
+if [[ ! -z "$SEARCH_ENGINE" ]]; then cmd+=" --search-engine='$SEARCH_ENGINE'"; fi
+
+if [[ ! -z "$ES_HOST" ]]; then cmd+=" --elasticsearch-host='$ES_HOST'"; fi
+
+if [[ ! -z "$ES_PORT" ]]; then cmd+=" --elasticsearch-port=$ES_PORT"; fi
+
+if [[ ! -z "$ES_USERNAME" ]]; then cmd+=" --elasticsearch-username='$ES_USERNAME'"; fi
+
+if [[ ! -z "$ES_PASSWORD" ]]; then cmd+=" --elasticsearch-password='$ES_PASSWORD'"; fi
 
 # Execute Setup Install Script
 echo "Building Installation Script"
