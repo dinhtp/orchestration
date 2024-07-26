@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: mysql:8.0.0
+    image: mysql:8.0
     restart: always
     cap_add:
       - ALL
@@ -37,17 +37,21 @@ services:
       - moodle
 
   moodle:
-    image: php8.1-apache
+    image: moodle:v4.0.4
     restart: unless-stopped
     volumes:
       - ./moodle:/var/www/html
+      - ./data:/home/moodle/data
     environment:
-      - moodle_DB_HOST=moodle-mysql:3306
-      - moodle_DB_NAME=moodle
-      - moodle_DB_USER=moodle
-      - moodle_DB_PASSWORD=moodle123!@#
-      - moodle_TABLE_PREFIX=wp_
-      - moodle_DEBUG=yes
+      - MOODLE_DB_TYPE=mysqli
+      - MOODLE_DB_HOST=moodle-mysql
+      - MOODLE_DB_PORT=3306
+      - MOODLE_DB_NAME=moodle
+      - MOODLE_DB_USER=moodle
+      - MOODLE_DB_PASSWORD=moodle123!@#
+      - MOODLE_DB_PREFIX=md_
+      - MOODLE_SITE_URL=http://localhost
+      - MOODLE_DATA_PATH=/home/moodle/data
     ports:
       - '80:80'
     hostname: moodle

@@ -1,0 +1,95 @@
+FROM php:8.1-apache
+
+# Magento 2 system requirements
+# https://experienceleague.adobe.com/en/docs/commerce-operations/installation-guide/system-requirements
+
+# Install System Dependencies
+RUN apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+	software-properties-common
+RUN apt-get update \
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -y \
+	libfreetype-dev \
+	libicu-dev \
+	libssl-dev \
+	libjpeg62-turbo-dev \
+	libmcrypt-dev \
+	libedit-dev \
+	libedit2 \
+	libxslt1-dev \
+	apt-utils \
+	gnupg \
+	redis-tools \
+	default-mysql-client \
+	git \
+	nano \
+	wget \
+	curl \
+	libcurl4-openssl-dev \
+	lynx \
+	psmisc \
+	unzip \
+	libzip-dev \
+	zip \
+	tar \
+	cron \
+	bash-completion
+RUN apt-get clean
+
+# Configure PHP extension
+RUN docker-php-ext-configure gd --with-jpeg=/usr/include/ --with-freetype=/usr/include/
+
+# Install PHP extensions
+RUN docker-php-ext-install mysqli
+RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install ctype
+RUN docker-php-ext-install curl
+RUN docker-php-ext-install dom
+RUN docker-php-ext-install gd
+RUN docker-php-ext-install iconv
+RUN docker-php-ext-install intl
+RUN docker-php-ext-install simplexml
+RUN docker-php-ext-install xml
+RUN docker-php-ext-install zip
+RUN docker-php-ext-install tidy
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install soap
+
+# Install oAuth
+RUN apt-get update \
+	&& apt-get install -y \
+	libpcre3 \
+	libpcre3-dev \
+	&& pecl install oauth \
+	&& echo "extension=oauth.so" > /usr/local/etc/php/conf.d/docker-php-ext-oauth.ini
+
+# Install Node, NVM, NPM and Grunt
+#RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
+#RUN curl https://raw.githubusercontent.com/creationix/nvm/v0.39.0/install.sh | sh
+#RUN apt-get update  \
+#    && apt-get upgrade -y  \
+#    && apt-get install -y nodejs build-essential  \
+#    && npm i -g grunt-cli yarn
+
+# Install Composer
+RUN	curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --version=2.7.7 --filename=composer
+
+# Configure system execution binary
+ADD config/php.ini /usr/local/etc/php/php.ini
+
+# Configure permission
+ADD src /var/www/html
+RUN mkdir /home/moodle && mkdir /home/moodle/data
+RUN chmod 777 -Rf /var/www /var/www/.*  \
+    && chown -Rf www-data:www-data /var/www /var/www/.*
+RUN chmod 777 -Rf /home/moodle/data /home/moodle/data/.*  \
+    && chown -Rf www-data:www-data /home/moodle/data /home/moodle/data/.*
+RUN usermod -u 1000 www-data \
+	&& chsh -s /bin/bash www-data\
+	&& a2enmod rewrite \
+	&& a2enmod headers
+
+VOLUME /var/www/html
+WORKDIR /var/www/html
+
+CMD apachectl -D FOREGROUND
