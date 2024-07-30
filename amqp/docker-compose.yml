@@ -1,0 +1,22 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    volumes:
+      - ./data:/var/lib/rabbitmq
+      - ./log:/var/log/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: "/"%
+    ports:
+      - 5672:5672
+      - 15672:15672
+    hostname: rabbitmq
+    container_name: rabbitmq
+    networks:
+      - rabbitmq
+
+networks:
+  wordpress:
+    driver: rabbitmq
