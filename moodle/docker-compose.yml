@@ -37,11 +37,11 @@ services:
       - moodle
 
   moodle:
-    image: moodle:v4.0.4
+    image: dinhtp/moodle:v4
     restart: unless-stopped
-#    volumes:
-#      - ./moodle:/var/www/html
-#      - ./data:/home/moodle/data
+    volumes:
+      - ./moodle:/var/www/html
+      - ./data:/home/moodle/data
     environment:
       - MOODLE_DB_TYPE=mysqli
       - MOODLE_DB_HOST=moodle-mysql

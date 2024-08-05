@@ -68,7 +68,6 @@ RUN	curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 ADD config/php.ini /usr/local/etc/php/php.ini
 
 # Configure permission
-ADD src /var/www/html
 RUN mkdir /home/moodle && mkdir /home/moodle/data
 RUN chmod 777 -Rf /var/www /var/www/.*  \
     && chown -Rf www-data:www-data /var/www /var/www/.*
