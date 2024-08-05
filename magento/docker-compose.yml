@@ -57,7 +57,7 @@ services:
       - magento
 
   magento:
-    image: magento:v1
+    image: dinhtp/magento:v2.4.7
     restart: unless-stopped
     volumes:
       - ./magento:/var/www/html
