@@ -5,7 +5,7 @@
 
 ## Installation Guide
 - Copy this directory into another directory
-- Run docker-compose.yml
+- Run `docker compose up`
 
 ## Reference
 - [System Requirements](https://wordpress.org/about/requirements/)
