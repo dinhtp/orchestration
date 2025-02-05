@@ -41,6 +41,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./wordpress:/var/www/html
+      - ./config/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     environment:
       - WORDPRESS_DB_HOST=wordpress-mysql:3306
       - WORDPRESS_DB_NAME=wordpress

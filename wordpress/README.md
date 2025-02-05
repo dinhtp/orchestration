@@ -5,6 +5,7 @@
 
 ## Installation Guide
 - Copy this directory into another directory
+- Delete `.gitkeep` file in `mysql` and `wordpress` directory
 - Run `docker compose up`
 
 ## Reference
