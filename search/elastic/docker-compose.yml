@@ -12,8 +12,8 @@ services:
         soft: -1
         hard: -1
     ports:
-      - 9200:9200
-      - 9300:9300
+      - 9200:9200 # ElasticSearch HTTP port
+      - 9300:9300 # ElasticSearch Transport port
     hostname: elastic-search
     container_name: elastic-search
     networks:

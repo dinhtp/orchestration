@@ -1,0 +1,49 @@
+services:
+  open-search-n1:
+    image: opensearchproject/opensearch:2.19.2
+    volumes:
+      - ./data:/usr/share/opensearch/data
+    environment:
+      - cluster.name=open-search-cluster
+      - node.name=open-search-n1
+      - discovery.seed_hosts=open-search-n1 # For single node, it can refer to itself
+      - cluster.initial_master_nodes=open-search-n1
+      - bootstrap.memory_lock=true # Disable swap during development
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # Adjust memory allocation as needed
+      # To enable security (recommended for production, but can be disabled for development)
+      - plugins.security.disabled=true # For development, security is disabled for simplicity.
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=OpenSearchProjectDemo@123
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 9200:9200 # OpenSearch HTTP port
+      - 9600:9600 # OpenSearch Transport port
+    hostname: open-search-n1
+    container_name: open-search-n1
+    networks:
+      - open-search
+
+  open-search-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.19.2
+    ports:
+      - 5601:5601 # OpenSearch Dashboards HTTP port
+    expose:
+      - 5601
+    environment:
+      - OPENSEARCH_HOSTS=["http://open-search-n1:9200"]
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    depends_on:
+      - open-search-n1 # Ensure OpenSearch node starts before Dashboards
+    hostname: open-search-dashboards
+    container_name: open-search-dashboards
+    networks:
+      - open-search
+
+networks:
+  open-search:
+    driver: bridge
