@@ -10,8 +10,8 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
       RABBITMQ_DEFAULT_VHOST: "/"%
     ports:
-      - 5672:5672
-      - 15672:15672
+      - 5672:5672 # AMQP
+      - 15672:15672 # Management UI http://localhost:15672  (guest/guest)
     hostname: rabbitmq
     container_name: rabbitmq
     networks:
