@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Execute Dependency Command
+if [[ $MAGENTO_SAMPLE_DATA = "1" ]];
+then
+php -f ./bin/magento sampledata:deploy
+fi
+
+php -f ./bin/magento setup:upgrade
+php -f ./bin/magento setup:di:compile
+php -f ./bin/magento setup:static-content:deploy -f
+php -f ./bin/magento indexer:set-mode schedule
+php -f ./bin/magento indexer:reindex
+php -f ./bin/magento deploy:mode:set "$MAGENTO_MODE"
+php -f ./bin/magento cache:flush
+
+# Install npm, grunt and cron
+mv package.json.sample package.json
+mv Gruntfile.js.sample Gruntfile.js
+npm i
+
+# Finish Installation
+composer dump-autoload -o
+chmod -R 777 var/ pub/ generated/
+echo "
+===================== Setup Complete ===================
+
+		Magento 2 Setup successfully!
+
+		Admin URL: $MAGENTO_URL/$ADMIN_URL
+		User: $ADMIN_USERNAME
+		Password: $ADMIN_PASSWORD
+	  Deployment Mode: $MAGENTO_MODE
+
+		Build something amazing!
+
+==============================================================="
