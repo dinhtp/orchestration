@@ -3,25 +3,28 @@
 version="latest"
 cmd="composer create-project --repository-url=https://repo.magento.com/ magento/project-community-edition"
 
-if [ $# -eq 1 ]
-then
+# specify magento 2 version if extra argument is provided
+if [ $# -eq 1 ]; then
   version="$1"
   cmd+=":$1"
 fi
 
+# initialize magento 2 source code in the current directory
 cmd+=" ."
 
 echo "Init Magento 2 Version: $version"
 echo "$cmd"
-eval "$cmd"
 
-chmod u+w -R ./var ./vendor ./pub/static ./pub/media ./app/etc
-chmod u+x ./bin/magento
+if eval "$cmd"; then
+  chmod u+w -R ./var ./vendor ./pub/static ./pub/media ./app/etc
+  chmod u+x ./bin/magento
 
-echo "
+  echo "
 ===================== Creation Complete ===================
 
-    Composer Magento 2 Created successfully!
+    Composer Magento 2 ($version) Created successfully!
     Merchant, commence your online business!
 
 ==========================================================="
+
+fi

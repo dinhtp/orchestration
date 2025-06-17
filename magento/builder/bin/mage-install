@@ -47,59 +47,29 @@ if [ "$MAGENTO_SAMPLE_DATA" = "1" ]; then cmd+=" --use-sample-data"; fi
 
 if [ "$MAGENTO_USE_SECURE" = "1" ]; then cmd+=" --base-url-secure='$MAGENTO_SECURE_URL'"; fi
 
-if [[ ! -z "$DB_PREFIX" ]]; then cmd+=" --base-url-secure='$DB_PREFIX'"; fi
+if [[ -z "$DB_PREFIX" ]]; then cmd+=" --base-url-secure='$DB_PREFIX'"; fi
 
-if [[ ! -z "$MAGENTO_SESSION_SAVE" ]]; then cmd+=" --session-save=$MAGENTO_SESSION_SAVE"; fi
+if [[ -z "$MAGENTO_SESSION_SAVE" ]]; then cmd+=" --session-save=$MAGENTO_SESSION_SAVE"; fi
 
-if [[ ! -z "$SEARCH_ENGINE" ]]; then cmd+=" --search-engine='$SEARCH_ENGINE'"; fi
+if [[ -z "$SEARCH_ENGINE" ]]; then cmd+=" --search-engine='$SEARCH_ENGINE'"; fi
 
-if [[ ! -z "$ES_HOST" ]]; then cmd+=" --elasticsearch-host='$ES_HOST'"; fi
+if [[ -z "$ES_HOST" ]]; then cmd+=" --elasticsearch-host='$ES_HOST'"; fi
 
-if [[ ! -z "$ES_PORT" ]]; then cmd+=" --elasticsearch-port=$ES_PORT"; fi
+if [[ -z "$ES_PORT" ]]; then cmd+=" --elasticsearch-port=$ES_PORT"; fi
 
-if [[ ! -z "$ES_USERNAME" ]]; then cmd+=" --elasticsearch-username='$ES_USERNAME'"; fi
+if [[ -z "$ES_USERNAME" ]]; then cmd+=" --elasticsearch-username='$ES_USERNAME'"; fi
 
-if [[ ! -z "$ES_PASSWORD" ]]; then cmd+=" --elasticsearch-password='$ES_PASSWORD'"; fi
+if [[ -z "$ES_PASSWORD" ]]; then cmd+=" --elasticsearch-password='$ES_PASSWORD'"; fi
 
 # Execute Setup Install Script
-echo "Building Installation Script"
 echo "Installation Script:"
 echo "$cmd"
 
-eval "$cmd"
-
-# Execute Dependency Command
-if [[ $MAGENTO_SAMPLE_DATA = "1" ]];
-then
-php -f ./bin/magento sampledata:deploy
-fi
-
-php -f ./bin/magento setup:upgrade
-php -f ./bin/magento setup:di:compile
-php -f ./bin/magento setup:static-content:deploy -f
-php -f ./bin/magento indexer:set-mode schedule
-php -f ./bin/magento indexer:reindex
-php -f ./bin/magento deploy:mode:set "$MAGENTO_MODE"
-php -f ./bin/magento cache:flush
-
-# Install npm, grunt and cron
-mv package.json.sample package.json
-mv Gruntfile.js.sample Gruntfile.js
-npm i
-
-# Finish Installation
-composer dump-autoload -o
-chmod -R 777 var/ pub/ generated/
-echo "
+if eval "$cmd"; then
+  echo "
 ===================== Installation Complete ===================
 
 		Magento 2 Installed successfully!
 
-		Admin URL: $MAGENTO_URL/$ADMIN_URL
-		User: $ADMIN_USERNAME
-		Password: $ADMIN_PASSWORD
-	  Deployment Mode: $MAGENTO_MODE
-
-		Build something amazing!
-
 ==============================================================="
+fi
